@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/datamarketdb
+    username: evi555
+    password: evi555
+  jpa:
+    database: postgresql
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  application:
+    name: market-data-service
+server:
+  port: 8081
+
+finnhub:
+  base-url: https://finnhub.io/api/v1
+  api-key: d7gba4pr01qqb8rj0vg0d7gba4pr01qqb8rj0vgg
+  endpoints:
+    quote: /quote
+    candles: /stock/candle
+  timeout:
+    connect-seconds: 5
+    read-seconds: 10
