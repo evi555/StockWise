@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface QouteRepository extends JpaRepository<QouteModel,Long> {
     QouteModel findByCompanySymbol(String CompanySymbol);
+
+    double findCurrentPriceByCompanySymbol(String symbol);
 }

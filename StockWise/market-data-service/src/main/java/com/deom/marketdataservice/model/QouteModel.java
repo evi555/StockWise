@@ -7,6 +7,10 @@ import jakarta.persistence.Id;
 import lombok.Data;
 import lombok.Generated;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity(name="qoutes")
 @NoArgsConstructor
@@ -17,6 +21,10 @@ public class QouteModel {
     private Long id;
 
     private String companySymbol;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
     private double currentPrice;
 

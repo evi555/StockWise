@@ -1,29 +1,79 @@
 package com.deom.marketdataservice.Service;
 
+import com.deom.marketdataservice.Client.AlphavantageApi;
 import com.deom.marketdataservice.Client.FinnhubApi;
 //import com.deom.marketdataservice.Client.FinnubClient;
+import com.deom.marketdataservice.Repository.HistoryPriceRepository;
 import com.deom.marketdataservice.Repository.QouteRepository;
-import com.deom.marketdataservice.dto.ResponseQutoeDto;
-import com.deom.marketdataservice.dto.FinnhubResponseQuoteDto;
+import com.deom.marketdataservice.dto.*;
+import com.deom.marketdataservice.model.HisotricalPricesModel;
 import com.deom.marketdataservice.model.QouteModel;
-import lombok.AllArgsConstructor;
+import com.deom.marketdataservice.model.Signal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
 public class dataService {
     private final FinnhubApi finnubClient;
+    private final int SMA20_SIZE=20;
+    private final int SMA50_SIZE=50;
+    private final AlphavantageApi alphavantageApi;
     private final QouteRepository qouteRepository;
-    @Value("${finnhub.api-key}") private String api_token_key;
-     ;
+    private final HistoryPriceRepository HistoryPriceRepository;
+    @Value("${finnhub.api-key}") private String finnhub_token_key;
+    @Value("${alphavantage.api-key}") private String alphavantage_token_key;
+    private final String Time_ser="TIME_SERIES_DAILY";
 
+
+
+    public void executeHistory(String symbol){
+       AlphaVantageResponseDto alphaVantageResponseDto;
+        try{
+            alphaVantageResponseDto = alphavantageApi.getDaily(Time_ser,symbol,alphavantage_token_key);
+            String only = alphavantageApi.getDailyString(Time_ser,symbol,alphavantage_token_key);
+            System.out.println(only);
+        }
+        catch (Exception e) {
+            throw  new RuntimeException(e);
+        }
+       // HisotricalPricesModel hisotricalPricesModel = new HisotricalPricesModel();
+
+        ConvertFromHistoryDtoToModel(alphaVantageResponseDto,symbol);
+
+
+    }
+
+
+    public void ConvertFromHistoryDtoToModel(AlphaVantageResponseDto alphaVantageResponseDto,String symbol) {
+        Map<String, AlphaDailyItemDto> timeSeriesDaily  = alphaVantageResponseDto.getTimeSeriesDaily();
+        for (Map.Entry<String, AlphaDailyItemDto> entry : timeSeriesDaily.entrySet()){
+
+            if(HistoryPriceRepository.findByCompanySymbolAndTradingDate(symbol,entry.getKey())!=null){
+                continue;
+            }
+            HisotricalPricesModel hisotricalPricesModel = new HisotricalPricesModel();
+            hisotricalPricesModel.setTradingDate(entry.getKey());
+            hisotricalPricesModel.setClosingPrice(Double.parseDouble(entry.getValue().getClosing_price()));
+            hisotricalPricesModel.setCompanySymbol(symbol);
+            hisotricalPricesModel.setVolume(Double.parseDouble(entry.getValue().getVolume()));
+            HistoryPriceRepository.save(hisotricalPricesModel);
+        }
+
+
+
+    }
 
     public ResponseQutoeDto makeQute(String symbol){
         FinnhubResponseQuoteDto finnhubResponseQuoteDto;
         try{
-             finnhubResponseQuoteDto = finnubClient.getQuote(symbol,api_token_key);
+             finnhubResponseQuoteDto = finnubClient.getQuote(symbol,finnhub_token_key);
         }
         catch (Exception e) {
             throw  new RuntimeException(e);

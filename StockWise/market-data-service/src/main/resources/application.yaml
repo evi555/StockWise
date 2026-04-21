@@ -23,3 +23,7 @@ finnhub:
   timeout:
     connect-seconds: 5
     read-seconds: 10
+
+alphavantage:
+  base-url: https://www.alphavantage.co/query
+  api-key: X98VGRM1D0ZJBVQL
